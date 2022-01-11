@@ -139,18 +139,6 @@ impl Square {
     }
 }
 
-pub enum Direction {
-    North =  8,
-    East  =  1,
-    South = -8,
-    West  = -1,
-
-    NorthEast = 9,
-    SouthEast = -7,
-    SouthWest = -9,
-    NorthWest = 7,
-}
-
 /// Castling denotes castle rights
 /// Each of the rightmost 4 bits in the u8 marks the right to castle
 #[derive(Copy, Clone)]

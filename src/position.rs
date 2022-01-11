@@ -1,8 +1,7 @@
 use std::io::BufReader;
 use crate::Bitboard;
 use crate::bitboard::EMPTY;
-use crate::types::{Castling, Color, Direction, Piece, PieceType, Square};
-use crate::types::Direction::{*};
+use crate::types::{Castling, Color, Piece, PieceType, Square};
 use crate::types::PieceType::{*};
 use crate::types::Square::{*};
 
@@ -26,6 +25,17 @@ pub static SQ_DISPLAY_ORDER: [Square; SQ_CNT] = [
     Square::A1, Square::B1, Square::C1, Square::D1, Square::E1, Square::F1, Square::G1, Square::H1,
 ];
 
+pub static SQ_INDEX_ORDER: [Square; SQ_CNT] = [
+    Square::A1, Square::B1, Square::C1, Square::D1, Square::E1, Square::F1, Square::G1, Square::H1,
+    Square::A2, Square::B2, Square::C2, Square::D2, Square::E2, Square::F2, Square::G2, Square::H2,
+    Square::A3, Square::B3, Square::C3, Square::D3, Square::E3, Square::F3, Square::G3, Square::H3,
+    Square::A4, Square::B4, Square::C4, Square::D4, Square::E4, Square::F4, Square::G4, Square::H4,
+    Square::A5, Square::B5, Square::C5, Square::D5, Square::E5, Square::F5, Square::G5, Square::H5,
+    Square::A6, Square::B6, Square::C6, Square::D6, Square::E6, Square::F6, Square::G6, Square::H6,
+    Square::A7, Square::B7, Square::C7, Square::D7, Square::E7, Square::F7, Square::G7, Square::H7,
+    Square::A8, Square::B8, Square::C8, Square::D8, Square::E8, Square::F8, Square::G8, Square::H8,
+];
+
 #[derive(Copy, Clone)]
 pub struct Position {
     // AND the following masks to get the pieces per color
@@ -41,6 +51,10 @@ pub struct Position {
     castle_rights: Castling,
     /// En passant target square, square behind pawn that just moved two spaces
     ep_square: Square,
+    /// Number of halfmoves since last pawn advance or capture
+    halfmoves: u64,
+    /// Number of the full move starting at 1. Incremented after black's move.
+    fullmoves: u64,
 }
 
 impl Position {
@@ -83,6 +97,8 @@ impl Position {
             turn: Color::White,
             castle_rights: Castling::C_NONE,
             ep_square: Square::None,
+            halfmoves: 0,
+            fullmoves: 1,
         };
 
         // 1. Piece placement
@@ -141,9 +157,15 @@ impl Position {
                     _ => panic!(),
                 };
             } else if i == 1 {
-                p.ep_square +=
+                p.ep_square = SQ_INDEX_ORDER[p.ep_square.index() + 24] // 24 squares to move 3 ranks
             }
         }
+
+        // 5. Halfmove clock
+        p.halfmoves = fields[4].parse().unwrap();
+
+        // 6. Fullmove number
+        p.fullmoves = fields[5].parse().unwrap();
         p
     }
 
