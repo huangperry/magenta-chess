@@ -52,9 +52,9 @@ pub struct Position {
     /// En passant target square, square behind pawn that just moved two spaces
     ep_square: Square,
     /// Number of halfmoves since last pawn advance or capture
-    halfmoves: u64,
-    /// Number of the full move starting at 1. Incremented after black's move.
-    fullmoves: u64,
+    rule50_count: u32,
+    /// Number of halfmoves starting at 0.
+    game_ply: u32,
 }
 
 impl Position {
@@ -97,8 +97,8 @@ impl Position {
             turn: Color::White,
             castle_rights: Castling::C_NONE,
             ep_square: Square::None,
-            halfmoves: 0,
-            fullmoves: 1,
+            rule50_count: 0,
+            game_ply: 1,
         };
 
         // 1. Piece placement
@@ -162,10 +162,11 @@ impl Position {
         }
 
         // 5. Halfmove clock
-        p.halfmoves = fields[4].parse().unwrap();
+        p.rule50_count = fields[4].parse().unwrap();
 
-        // 6. Fullmove number
-        p.fullmoves = fields[5].parse().unwrap();
+        // 6. Convert fullmove number to game ply
+        let fullmove: u32 = fields[5].parse().unwrap();
+        p.game_ply = 2 * (fullmove - 1) + if p.turn == Color::Black {1} else {0};
         p
     }
 
