@@ -3,7 +3,6 @@ use crate::Bitboard;
 use crate::bitboard::EMPTY;
 use crate::types::{Castling, Color, Piece, PieceType, Square};
 use crate::types::PieceType::{*};
-use crate::types::Square::{*};
 
 /// Board position for new game
 pub const DEFAULT_FEN_STRING: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -96,7 +95,7 @@ impl Position {
             board: [Piece::None; SQ_CNT],
             turn: Color::White,
             castle_rights: Castling::C_NONE,
-            ep_square: Square::None,
+            ep_square: Square::NONE,
             rule50_count: 0,
             game_ply: 1,
         };
@@ -145,7 +144,7 @@ impl Position {
         for (i, c) in fields[3].chars().enumerate() {
             if i == 0 {
                 p.ep_square = match c {
-                    '-' => Square::None,
+                    '-' => Square::NONE,
                     'a' => Square::A3,
                     'b' => Square::B3,
                     'c' => Square::C3,
@@ -166,14 +165,14 @@ impl Position {
 
         // 6. Convert fullmove number to game ply
         let fullmove: u32 = fields[5].parse().unwrap();
-        p.game_ply = 2 * (fullmove - 1) + if p.turn == Color::Black {1} else {0};
+        p.game_ply = 2 * (fullmove - 1) + if matches!(p.turn, Color::Black) {1} else {0};
         p
     }
 
     pub fn put_piece(&mut self, pc: Piece, s: &Square) {
         self.board[s.index()] = pc;
-        self.bbs[pc.type_of() as usize] |= s.bb();
-        self.bbs_color[pc.color() as usize] |= s.bb();
+        self.bbs[pc.type_of() as usize] |= s.to_bb();
+        self.bbs_color[pc.color() as usize] |= s.to_bb();
     }
 
     pub fn pretty(&self) -> String {
